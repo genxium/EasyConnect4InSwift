@@ -2,6 +2,8 @@
 
 ***What is this?***
 
+![Alt text](http://7xljmm.dl1.z0.glb.clouddn.com/ConnectFour.png "Game Screenshot")
+
 This project builds a simple [Connect4/FourInARow game](https://en.wikipedia.org/wiki/Connect_Four), it's inspired by [an Apple Developer sample](https://developer.apple.com/library/ios/samplecode/FourInARow) for GameplayKit minmax strategist.
 
 However there're several significant differences other than the use of Swift (thus shorter code length) instead of Objective-C.
