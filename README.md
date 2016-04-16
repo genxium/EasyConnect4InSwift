@@ -31,7 +31,7 @@ Once the requirements above are all satisfied, you can build & run it by
 
 ***AI trigger***
 
-In [view controller file](https://github.com/genxium/EasyConnect4InSwift/ConnectFour/GameViewController.swift), set 
+In [view controller file](https://github.com/genxium/EasyConnect4InSwift/blob/master/ConnectFour/GameViewController.swift), set 
 
 ```swift
   var blackByAI = true
