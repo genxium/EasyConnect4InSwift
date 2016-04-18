@@ -1,6 +1,5 @@
 import GameplayKit
 
-@objc(Board)
 class Board: NSObject {
     /*
     // TODO: not used yet
@@ -21,6 +20,10 @@ class Board: NSObject {
 //    var state: State
     
     // MARK: methods
+    required override init() {
+        super.init()
+    }
+    
     convenience init(aCountsToWin: Int, aNCols: Int, aNRows: Int) {
         self.init()
         countsToWin = aCountsToWin
@@ -59,9 +62,9 @@ class Board: NSObject {
         var counts = [Int]()
         
         // Detect horizontal runs.
-        for row in 0..<nRows {
+        for row in 0 ..< nRows {
             var runCount = 0
-            for column in 0..<nCols {
+            for column in 0 ..< nCols {
                 if chipAt(column, row: row) == chip {
                     runCount += 1
                 } else {
@@ -236,6 +239,8 @@ extension Board: GKGameModel {
     func applyGameModelUpdate(gameModelUpdate: GKGameModelUpdate) {
         let drop = gameModelUpdate as! ChipDrop
         addChip(currentPlayer.chip, atColumn: drop.targetCol!)
+        
+        // The following assignment might be confusing, the only important thing to notice is that the stack-memory-addr of every `currentPlayer` variable of the corresponding `Board` instance is different from the others
         currentPlayer = GamePlayerSource.opponent(currentPlayer)
     }
     
@@ -248,7 +253,8 @@ extension Board: GKGameModel {
     }
     
     func isLossForPlayer(player: GKGameModelPlayer) -> Bool {
-        return !isWinForPlayer(player)
+        // WARNING: DON'T return (!isWinForPlayer(player)), it'll be falsely used by `GKMinmaxStrategist` and thus cause `gameModelUpdatesForPlayer(:_)` to be skipped!
+        return isWinForPlayer(GamePlayerSource.opponent(currentPlayer))
     }
     
     func scoreForPlayer(player: GKGameModelPlayer) -> Int {

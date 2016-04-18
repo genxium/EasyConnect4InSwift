@@ -14,7 +14,7 @@ import GameplayKit
 class GameViewController: UIViewController {
     
     // MARK: properties
-    var blackByAI = false
+    var blackByAI = true
     
     var countsToWin = 4
     var boardNCols = 7
@@ -25,7 +25,7 @@ class GameViewController: UIViewController {
     var nodeList: [ChipNode]!
     var nodeShape: UIBezierPath!
     
-    var strategist: GKMinmaxStrategist!
+    var strategist: GameStrategist!
     
     // MARK: methods
     required init?(coder aDecoder: NSCoder) {
@@ -92,8 +92,8 @@ class GameViewController: UIViewController {
             // asynchronous AI "thinking" process with time limit
             dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
                 let stTime = CFAbsoluteTimeGetCurrent()
-                // Note that `bestMoveForActivePlayer` will automatically call `board.applyGameModelUpdate`
-                let aiChipDrop = self.strategist.bestMoveForActivePlayer()
+                
+                let aiChipDrop = self.strategist.bestMoveForPlayer(self.board.activePlayer!)
                 let aiColToDrop = (aiChipDrop as! ChipDrop).targetCol!
                 
                 let timeElapsed = CFAbsoluteTimeGetCurrent() - stTime
@@ -105,7 +105,7 @@ class GameViewController: UIViewController {
                 let dispatchTimeDelay = dispatch_time(DISPATCH_TIME_NOW, Int64(delay * NSEC_PER_SEC))
                 dispatch_after(dispatchTimeDelay, dispatch_get_main_queue(), {
                     self.navigationItem.leftBarButtonItem = nil // spinning ends
-                    self.attemptDropping(self.board.currentPlayer, asAI: true, atColumn: aiColToDrop)
+                    self.attemptDropping(self.board.currentPlayer, atColumn: aiColToDrop)
                 })
             })
         }
@@ -126,7 +126,7 @@ class GameViewController: UIViewController {
         
         nextTurn()
         
-        strategist.gameModel = board
+        strategist = GameStrategist(aGameModel: board, aDepth: boardNCols) // the depth should be deemed hardcoded
         
         for node in nodeList {
             node.removeFromSuperlayer()
@@ -136,21 +136,14 @@ class GameViewController: UIViewController {
     
     func onColumnButtonClicked(sender: UIButton) {
         let col = sender.tag
-        guard attemptDropping(board.currentPlayer, asAI: false, atColumn: col) else {
+        guard attemptDropping(board.currentPlayer, atColumn: col) else {
             print("Invalid Column")
             return
         }
-        
-        let chipDrop = ChipDrop(aCol: col)
-        board.applyGameModelUpdate(chipDrop)
-        endGameOrNextTurn()
     }
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        strategist = GKMinmaxStrategist()
-        strategist.maxLookAheadDepth = boardNCols // this is should be deemed hardcoded
         
         columnButtonList = [UIButton]()
         nodeList = [ChipNode]()
@@ -201,7 +194,7 @@ class GameViewController: UIViewController {
         super.viewDidLayoutSubviews()
     }
     
-    func attemptDropping(byPlayer: Player, asAI: Bool, atColumn: Int) -> Bool {
+    func attemptDropping(byPlayer: Player, atColumn: Int) -> Bool {
         let nextRow = board.nextEmptySlotAtColumn(atColumn)
         guard nextRow != board.INVALID_ROW else {
             return false
@@ -226,9 +219,10 @@ class GameViewController: UIViewController {
         // TODO: GUI guarding for animation
         node.addAnimation(translationAnimator, forKey: nil)
         
-        if asAI {
-            endGameOrNextTurn()
-        }
+        let chipDrop = ChipDrop(aCol: atColumn)
+        board.applyGameModelUpdate(chipDrop)
+        
+        endGameOrNextTurn()
         return true
     }
     

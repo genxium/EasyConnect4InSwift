@@ -7,7 +7,6 @@ enum Chip : Int {
     case Black
 }
 
-@objc(Player)
 class Player: NSObject {
     
     // MARK: properties
@@ -41,8 +40,8 @@ class Player: NSObject {
     
     // MARK: methods
     required init(chip: Chip) {
-        
         self.chip = chip
+        super.init()
     }
     
     // MARK: debug description

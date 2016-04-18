@@ -9,17 +9,16 @@
 import Foundation
 import GameplayKit
 
-@objc(GameStrategist)
 class GameStrategist: GKMinmaxStrategist {
-    required init(aGameModel: Board, aMaxLookAheadDepth: Int) {
-        super.init()
-        self.gameModel = aGameModel
-        maxLookAheadDepth = aMaxLookAheadDepth
-        randomSource = GKARC4RandomSource()
+    func bestColForPlayer(player: Player) -> Int {
+        let chipDrop = bestMoveForPlayer(player) as! ChipDrop
+        return chipDrop.targetCol!
     }
     
-    func bestColumnToDrop(player: Player) -> Int {
-        let chipDrop = bestMoveForPlayer(player)
-        return (chipDrop as! ChipDrop).targetCol!
+    convenience init(aGameModel: Board, aDepth: Int) {
+        self.init()
+        self.gameModel = aGameModel
+        self.maxLookAheadDepth = aDepth
+        self.randomSource = GKARC4RandomSource()
     }
 }
