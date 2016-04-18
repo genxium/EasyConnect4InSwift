@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		205159411CC4F7BC006057C2 /* ChipDrop.swift in Sources */ = {isa = PBXBuildFile; fileRef = 205159401CC4F7BC006057C2 /* ChipDrop.swift */; };
+		205159421CC4F7BC006057C2 /* ChipDrop.swift in Sources */ = {isa = PBXBuildFile; fileRef = 205159401CC4F7BC006057C2 /* ChipDrop.swift */; };
+		205159431CC4F7BC006057C2 /* ChipDrop.swift in Sources */ = {isa = PBXBuildFile; fileRef = 205159401CC4F7BC006057C2 /* ChipDrop.swift */; };
+		205159451CC510F4006057C2 /* GameStrategist.swift in Sources */ = {isa = PBXBuildFile; fileRef = 205159441CC510F4006057C2 /* GameStrategist.swift */; };
 		2065BD201CC0E412002A27BC /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2065BD1F1CC0E412002A27BC /* AppDelegate.swift */; };
 		2065BD221CC0E412002A27BC /* art.scnassets in Resources */ = {isa = PBXBuildFile; fileRef = 2065BD211CC0E412002A27BC /* art.scnassets */; };
 		2065BD241CC0E412002A27BC /* GameViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2065BD231CC0E412002A27BC /* GameViewController.swift */; };
@@ -26,6 +30,9 @@
 		20EE32881CC0F9D60096F3CE /* ChipNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20EE32871CC0F9D60096F3CE /* ChipNode.swift */; };
 		20EE32891CC0F9D60096F3CE /* ChipNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20EE32871CC0F9D60096F3CE /* ChipNode.swift */; };
 		20EE328A1CC0F9D60096F3CE /* ChipNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20EE32871CC0F9D60096F3CE /* ChipNode.swift */; };
+		20FA6CA61CC5232300DE49DF /* GamePlayerSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20FA6CA51CC5232300DE49DF /* GamePlayerSource.swift */; };
+		20FA6CA71CC5247E00DE49DF /* GamePlayerSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20FA6CA51CC5232300DE49DF /* GamePlayerSource.swift */; };
+		20FA6CA81CC5247E00DE49DF /* GamePlayerSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20FA6CA51CC5232300DE49DF /* GamePlayerSource.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -46,6 +53,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		205159401CC4F7BC006057C2 /* ChipDrop.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ChipDrop.swift; sourceTree = "<group>"; };
+		205159441CC510F4006057C2 /* GameStrategist.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GameStrategist.swift; sourceTree = "<group>"; };
 		2065BD1C1CC0E412002A27BC /* ConnectFour.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ConnectFour.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		2065BD1F1CC0E412002A27BC /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		2065BD211CC0E412002A27BC /* art.scnassets */ = {isa = PBXFileReference; lastKnownFileType = wrapper.scnassets; path = art.scnassets; sourceTree = "<group>"; };
@@ -65,6 +74,7 @@
 		20EE327C1CC0E7620096F3CE /* Player.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Player.swift; sourceTree = "<group>"; };
 		20EE32801CC0E9BD0096F3CE /* Board.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Board.swift; sourceTree = "<group>"; };
 		20EE32871CC0F9D60096F3CE /* ChipNode.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ChipNode.swift; sourceTree = "<group>"; };
+		20FA6CA51CC5232300DE49DF /* GamePlayerSource.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GamePlayerSource.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -161,6 +171,8 @@
 			children = (
 				20EE327C1CC0E7620096F3CE /* Player.swift */,
 				20EE32801CC0E9BD0096F3CE /* Board.swift */,
+				205159401CC4F7BC006057C2 /* ChipDrop.swift */,
+				20FA6CA51CC5232300DE49DF /* GamePlayerSource.swift */,
 			);
 			name = Model;
 			sourceTree = "<group>";
@@ -169,6 +181,7 @@
 			isa = PBXGroup;
 			children = (
 				2065BD231CC0E412002A27BC /* GameViewController.swift */,
+				205159441CC510F4006057C2 /* GameStrategist.swift */,
 			);
 			name = Controller;
 			sourceTree = "<group>";
@@ -314,8 +327,11 @@
 			buildActionMask = 2147483647;
 			files = (
 				2065BD241CC0E412002A27BC /* GameViewController.swift in Sources */,
+				20FA6CA61CC5232300DE49DF /* GamePlayerSource.swift in Sources */,
 				20EE327D1CC0E7620096F3CE /* Player.swift in Sources */,
+				205159411CC4F7BC006057C2 /* ChipDrop.swift in Sources */,
 				20EE32811CC0E9BD0096F3CE /* Board.swift in Sources */,
+				205159451CC510F4006057C2 /* GameStrategist.swift in Sources */,
 				20BCFEC01CC1F2EE00268FC0 /* TimeTool.swift in Sources */,
 				20EE32881CC0F9D60096F3CE /* ChipNode.swift in Sources */,
 				2065BD201CC0E412002A27BC /* AppDelegate.swift in Sources */,
@@ -328,7 +344,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				20EE327E1CC0E7620096F3CE /* Player.swift in Sources */,
+				20FA6CA71CC5247E00DE49DF /* GamePlayerSource.swift in Sources */,
 				20EE32891CC0F9D60096F3CE /* ChipNode.swift in Sources */,
+				205159421CC4F7BC006057C2 /* ChipDrop.swift in Sources */,
 				2065BD371CC0E413002A27BC /* ConnectFourTests.swift in Sources */,
 				20EE32821CC0E9BD0096F3CE /* Board.swift in Sources */,
 			);
@@ -339,7 +357,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				20EE327F1CC0E7620096F3CE /* Player.swift in Sources */,
+				20FA6CA81CC5247E00DE49DF /* GamePlayerSource.swift in Sources */,
 				20EE328A1CC0F9D60096F3CE /* ChipNode.swift in Sources */,
+				205159431CC4F7BC006057C2 /* ChipDrop.swift in Sources */,
 				2065BD421CC0E413002A27BC /* ConnectFourUITests.swift in Sources */,
 				20EE32831CC0E9BD0096F3CE /* Board.swift in Sources */,
 			);

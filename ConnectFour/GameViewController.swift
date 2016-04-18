@@ -14,7 +14,7 @@ import GameplayKit
 class GameViewController: UIViewController {
     
     // MARK: properties
-    var blackByAI = true
+    var blackByAI = false
     
     var countsToWin = 4
     var boardNCols = 7
@@ -25,12 +25,14 @@ class GameViewController: UIViewController {
     var nodeList: [ChipNode]!
     var nodeShape: UIBezierPath!
     
+    var strategist: GKMinmaxStrategist!
+    
     // MARK: methods
     required init?(coder aDecoder: NSCoder) {
         super.init(coder: aDecoder)
     }
     
-    func takeTurnOrEndGame() {
+    func endGameOrNextTurn() {
         // try to end game
         var gameOverTitle: String? = nil
         
@@ -38,8 +40,9 @@ class GameViewController: UIViewController {
             gameOverTitle = "Draw!"
         }
         
-        if board.isWinForPlayer(board.currentPlayer) {
-            gameOverTitle = String(format: "%@ Wins!", self.board.currentPlayer.name)
+        // check victory for `previous turn` player, this is a compromise of GKGameModel behavious
+        if board.isWinForPlayer(GamePlayerSource.opponent(board.currentPlayer)) {
+            gameOverTitle = String(format: "%@ Wins!", GamePlayerSource.opponent(board.currentPlayer).name)
         }
         
         if let t = gameOverTitle {
@@ -55,9 +58,7 @@ class GameViewController: UIViewController {
             return
         }
         
-        // take turn
-        self.board.currentPlayer = self.board.currentPlayer.opponent;
-        updateNavItems()
+        nextTurn()
     }
     
     func enableColumnButtonListWithCapacityCheck(val: Bool) {
@@ -68,7 +69,11 @@ class GameViewController: UIViewController {
         }
     }
     
-    func updateNavItems() {
+    func nextTurn() {
+        for button in columnButtonList {
+            updateButton(button)
+        }
+        
         navigationItem.title = String(format:"%@ Turn", board.currentPlayer.name!)
         navigationController!.navigationBar.backgroundColor = board.currentPlayer.color
         
@@ -86,31 +91,21 @@ class GameViewController: UIViewController {
             
             // asynchronous AI "thinking" process with time limit
             dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
-                // TODO: let AI "think" for 2 seconds
-                let secondsToThink = Int64(2) // seconds
+                let stTime = CFAbsoluteTimeGetCurrent()
+                // Note that `bestMoveForActivePlayer` will automatically call `board.applyGameModelUpdate`
+                let aiChipDrop = self.strategist.bestMoveForActivePlayer()
+                let aiColToDrop = (aiChipDrop as! ChipDrop).targetCol!
                 
-                let stTime = currentGmtMillis()
+                let timeElapsed = CFAbsoluteTimeGetCurrent() - stTime
                 
-                // TODO: don't use such dumb traversal, apply GameplayKit strategist
-                var colToTakeMove = 0 // just get any valid move at this stage, not yet a strategy
-                for col in 0 ..< self.boardNCols {
-                    let row = self.board.nextEmptySlotAtColumn(col)
-                    guard row != self.board.INVALID_ROW else {
-                        continue
-                    }
-                    colToTakeMove = col
-                    break
-                }
+                let aiTimeCeiling = NSTimeInterval(2.0)
+                let delay = UInt64(max(aiTimeCeiling - timeElapsed, 0))
                 
-                let edTime = currentGmtMillis()
-                let secondsElapsedInThinking = ((edTime - stTime) / Int64(1000))
-                
-                let delay = UInt64(secondsToThink - secondsElapsedInThinking)
                 // apply the move when back to main/UI thread
                 let dispatchTimeDelay = dispatch_time(DISPATCH_TIME_NOW, Int64(delay * NSEC_PER_SEC))
                 dispatch_after(dispatchTimeDelay, dispatch_get_main_queue(), {
                     self.navigationItem.leftBarButtonItem = nil // spinning ends
-                    self.drop(self.board.currentPlayer, atColumn: colToTakeMove)
+                    self.attemptDropping(self.board.currentPlayer, asAI: true, atColumn: aiColToDrop)
                 })
             })
         }
@@ -127,11 +122,11 @@ class GameViewController: UIViewController {
     }
     
     func resetBoard() {
-        self.board = Board(aCountsToWin: countsToWin, aNCols: boardNCols, aNRows: boardNRows)
-        for button in columnButtonList {
-            updateButton(button)
-        }
-        updateNavItems()
+        board = Board(aCountsToWin: countsToWin, aNCols: boardNCols, aNRows: boardNRows)
+        
+        nextTurn()
+        
+        strategist.gameModel = board
         
         for node in nodeList {
             node.removeFromSuperlayer()
@@ -141,17 +136,23 @@ class GameViewController: UIViewController {
     
     func onColumnButtonClicked(sender: UIButton) {
         let col = sender.tag
-        guard drop(board.currentPlayer, atColumn: col) else {
+        guard attemptDropping(board.currentPlayer, asAI: false, atColumn: col) else {
             print("Invalid Column")
             return
         }
+        
+        let chipDrop = ChipDrop(aCol: col)
+        board.applyGameModelUpdate(chipDrop)
+        endGameOrNextTurn()
     }
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        strategist = GKMinmaxStrategist()
+        strategist.maxLookAheadDepth = boardNCols // this is should be deemed hardcoded
+        
         columnButtonList = [UIButton]()
-        board = Board(aCountsToWin: countsToWin, aNCols: boardNCols, aNRows: boardNRows)
         nodeList = [ChipNode]()
         
         // calculate button size with respect to #cols
@@ -200,8 +201,7 @@ class GameViewController: UIViewController {
         super.viewDidLayoutSubviews()
     }
     
-    // MARK: drop(_:, _:) may be called either by player-button interaction or AI
-    func drop(byPlayer: Player, atColumn: Int) -> Bool {
+    func attemptDropping(byPlayer: Player, asAI: Bool, atColumn: Int) -> Bool {
         let nextRow = board.nextEmptySlotAtColumn(atColumn)
         guard nextRow != board.INVALID_ROW else {
             return false
@@ -216,14 +216,6 @@ class GameViewController: UIViewController {
         // add it to nodeList
         nodeList.append(node)
         
-        // add chip information to board
-        board.addChip(board.currentPlayer.chip, atColumn: atColumn)
-        for button in columnButtonList {
-            updateButton(button)
-        }
-        
-        takeTurnOrEndGame()
-        
         // create a translation animator
         let translationAnimator = CABasicAnimation(keyPath: "position.y")
         translationAnimator.fromValue = 0.0 // top of self.view.layer
@@ -234,6 +226,9 @@ class GameViewController: UIViewController {
         // TODO: GUI guarding for animation
         node.addAnimation(translationAnimator, forKey: nil)
         
+        if asAI {
+            endGameOrNextTurn()
+        }
         return true
     }
     

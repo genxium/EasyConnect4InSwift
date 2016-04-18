@@ -1,4 +1,5 @@
 import UIKit
+import GameplayKit
 
 enum Chip : Int {
     case None = 0
@@ -6,7 +7,8 @@ enum Chip : Int {
     case Black
 }
 
-class Player {
+@objc(Player)
+class Player: NSObject {
     
     // MARK: properties
     var chip: Chip
@@ -22,6 +24,7 @@ class Player {
             }
         }
     }
+    
     var name: String! {
         get {
             switch self.chip {
@@ -35,50 +38,15 @@ class Player {
             
         }
     }
-    var opponent: Player! {
-        get {
-            switch self.chip {
-            case .Red:
-                return Player.blackPlayer()
-            case .Black:
-                return Player.redPlayer()
-            default:
-                return nil
-            }
-            
-        }
-    }
     
     // MARK: methods
     required init(chip: Chip) {
+        
         self.chip = chip
     }
     
-    class func redPlayer() -> Player {
-        return self.playerForChip(.Red)!
-    }
-
-    class func blackPlayer() -> Player {
-        return self.playerForChip(.Black)!
-    }
-
-    class func allPlayers() -> [Player] {
-        var allPlayers: [Player]? = nil
-        if allPlayers == nil {
-            allPlayers = [Player(chip: .Red), Player(chip: .Black)]
-        }
-        return allPlayers!
-    }
-
-    class func playerForChip(chip: Chip) -> Player? {
-        if chip == .None {
-            return nil
-        }
-        // Chip enum is 0/1/2, array is 0/1.
-        return self.allPlayers()[chip.rawValue - 1]
-    }
-
-    func debugDescription() -> String {
+    // MARK: debug description
+    override var debugDescription: String {
         switch self.chip {
             case .Red:
                 return "X"
@@ -87,5 +55,12 @@ class Player {
             default:
                 return " "
         }
+    }
+}
+
+// MARK: GKGameModelPlayer
+extension Player: GKGameModelPlayer {
+    var playerId: Int {
+        return chip.rawValue
     }
 }

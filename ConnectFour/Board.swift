@@ -1,4 +1,7 @@
-class Board {
+import GameplayKit
+
+@objc(Board)
+class Board: NSObject {
     /*
     // TODO: not used yet
     enum State: Int {
@@ -8,25 +11,28 @@ class Board {
      */
     
     // MARK: properties
-    let INVALID_ROW = (-1)
+    var INVALID_ROW = (-1)
     
-    var countsToWin: Int
-    var nCols: Int
-    var nRows: Int
-    var chipList: [Chip]
-    var currentPlayer: Player
-//    var state: State 
+    var countsToWin: Int!
+    var nCols: Int!
+    var nRows: Int!
+    var chipList: [Chip]!
+    var currentPlayer: Player!
+//    var state: State
     
-    required init(aCountsToWin: Int, aNCols: Int, aNRows: Int) {
-//        state = State.IDLE
+    // MARK: methods
+    convenience init(aCountsToWin: Int, aNCols: Int, aNRows: Int) {
+        self.init()
         countsToWin = aCountsToWin
         nCols = aNCols
         nRows = aNRows
-        currentPlayer = Player.redPlayer()
+        
+        // The properties below should be overwritten in `copyWithZone` and `setGameModel`
+        currentPlayer = GamePlayerSource.playerForChip(.Red)
         chipList = [Chip](count: nCols*nRows, repeatedValue: .None)
+        //        state = State.IDLE
     }
 
-    // MARK: methods
     func chipAt(column: Int, row: Int) -> Chip {
         return chipList[row + column * nRows]
     }
@@ -147,10 +153,6 @@ class Board {
         }
         return counts
     }
-
-    func updateChipsFromBoard(otherBoard: Board) {
-        chipList = otherBoard.chipList
-    }
     
     func isFull() -> Bool {
         for column in 0 ..< nCols {
@@ -161,41 +163,22 @@ class Board {
         return true
     }
     
-    func isWinForPlayer(player: Player) -> Bool {
-        let runCounts = runCountsForPlayer(player)
-        guard let longestRun = runCounts.maxElement() else {
-            return false
+    func nextEmptySlotAtColumn(column: Int) -> Int {
+        for row in 0 ..< nRows {
+            if chipAt(column, row: row) == .None {
+                return row
+            }
         }
-        return longestRun >= countsToWin
+        return INVALID_ROW
     }
-    
-    func isLostForPlayer(player: Player) -> Bool {
-        return !isWinForPlayer(player)
-    }
-    
-    /*
-    - (BOOL)isWinForPlayer:(AAPLPlayer *)player {
-    // Use AAPLBoard's utility method to find all N-in-a-row runs of the player's chip.
-    NSArray<NSNumber *> *runCounts = [self runCountsForPlayer:player];
-    
-    // The player wins if there are any runs of 4 (or more, but that shouldn't happen in a regular game).
-    NSNumber *longestRun = [runCounts valueForKeyPath:@"@max.self"];
-    return longestRun.integerValue >= AAPLCountToWin;
-    }
-    
-    - (BOOL)isLossForPlayer:(AAPLPlayer *)player {
-    // This is a two-player game, so a win for the opponent is a loss for the player.
-    return [self isWinForPlayer:player.opponent];
-    }
-    */
 
-    // MARK: debug information
-    func debugDescription() -> String {
+    // MARK: debug description
+    override var debugDescription: String {
         var output = ""
         for row in (nRows - 1).stride(through: 0, by: -1) {
             for column in 0..<nCols {
                 let chip: Chip = self.chipAt(column, row: row)
-                let playerDescription: String = Player.playerForChip(chip).debugDescription ?? " "
+                let playerDescription: String = GamePlayerSource.playerForChip(chip).debugDescription ?? " "
                 output += (playerDescription)
                 let nodeDescription = (column + 1 < nCols) ? "." : ""
                 output += nodeDescription
@@ -205,13 +188,79 @@ class Board {
         }
         return output
     }
+}
 
-    func nextEmptySlotAtColumn(column: Int) -> Int {
-        for row in 0 ..< nRows {
-            if chipAt(column, row: row) == .None {
-                return row
+// MARK: GKGameModel
+extension Board: GKGameModel {
+    // MARK: NSCopying
+    func copyWithZone(zone: NSZone) -> AnyObject {
+        let copy = Board()
+        copy.setGameModel(self)
+        return copy
+    }
+    
+    var activePlayer: GKGameModelPlayer? {
+        return currentPlayer
+    }
+    
+    var players: [GKGameModelPlayer]? {
+        return GamePlayerSource.allPlayers
+    }
+    
+    func setGameModel(gameModel: GKGameModel) {
+        // blind copy implementation
+        let aBoard = gameModel as! Board
+        INVALID_ROW = aBoard.INVALID_ROW
+        countsToWin = aBoard.countsToWin
+        nCols = aBoard.nCols
+        nRows = aBoard.nRows
+        chipList = aBoard.chipList
+        currentPlayer = aBoard.currentPlayer // This assignment is intentional because the pointers/RAM-addr to `currentPlayer` and `opponent` are supposed to be the same across all `GKGameModel` copies
+        //        state = aBoard.state
+    }
+    
+    func gameModelUpdatesForPlayer(player: GKGameModelPlayer) -> [GKGameModelUpdate]? {
+        
+        var updates: [ChipDrop] = []
+        updates.reserveCapacity(nCols)
+        for col in 0 ..< nCols {
+            if canDropAtColumn(col) {
+                // TODO: apply lazy-init of ChipDrop for same column values
+                updates.append(ChipDrop(aCol: col))
             }
         }
-        return INVALID_ROW
+        
+        return updates
+    }
+    
+    func applyGameModelUpdate(gameModelUpdate: GKGameModelUpdate) {
+        let drop = gameModelUpdate as! ChipDrop
+        addChip(currentPlayer.chip, atColumn: drop.targetCol!)
+        currentPlayer = GamePlayerSource.opponent(currentPlayer)
+    }
+    
+    func isWinForPlayer(player: GKGameModelPlayer) -> Bool {
+        let runCounts = runCountsForPlayer(player as! Player)
+        guard let longestRun = runCounts.maxElement() else {
+            return false
+        }
+        return longestRun >= countsToWin
+    }
+    
+    func isLossForPlayer(player: GKGameModelPlayer) -> Bool {
+        return !isWinForPlayer(player)
+    }
+    
+    func scoreForPlayer(player: GKGameModelPlayer) -> Int {
+        let playerInstance = player as! Player
+        
+        let playerRunCounts = runCountsForPlayer(playerInstance)
+        let playerTotal = playerRunCounts.reduce(0, combine: +)
+        
+        let opponentRunCounts = runCountsForPlayer(GamePlayerSource.opponent(playerInstance))
+        let opponentTotal = opponentRunCounts.reduce(0, combine: +)
+        
+        // Return the sum of player runs minus the sum of opponent runs.
+        return playerTotal - opponentTotal
     }
 }

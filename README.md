@@ -6,14 +6,6 @@
 
 This project builds a simple [Connect4/FourInARow game](https://en.wikipedia.org/wiki/Connect_Four), it's inspired by [an Apple Developer sample](https://developer.apple.com/library/ios/samplecode/FourInARow) for GameplayKit minmax strategist.
 
-However there're several significant differences other than the use of Swift (thus shorter code length) instead of Objective-C.
-
-1. Additional 'ChipNode' view class for better readibility.
-2. Unified view-controller entry/method for either human or AI moves.  
-3. Temporarily removed the strategist instance.
-
-The state automata for 'Board' is not yet complicated enough to take a place in the codes at the moment :)
-
 ***How to install***
 
 This project requires the following OS, IDE and device/simulator to build & run
