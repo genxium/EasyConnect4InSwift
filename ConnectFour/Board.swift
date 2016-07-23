@@ -240,7 +240,7 @@ extension Board: GKGameModel {
         let drop = gameModelUpdate as! ChipDrop
         addChip(currentPlayer.chip, atColumn: drop.targetCol!)
         
-        // The following assignment might be confusing, the only important thing to notice is that the stack-memory-addr of every `currentPlayer` variable of the corresponding `Board` instance is different from the others
+        // The following assignment might be confusing, the only important thing to notice is that the memory-addr of every `currentPlayer` variable of the corresponding `Board` instance is different from the others
         currentPlayer = GamePlayerSource.opponent(currentPlayer)
     }
     
